@@ -1,0 +1,10 @@
+services:
+    game-picker-app:
+        build: .
+        volumes:
+            - ./app:/usr/src/app
+            - ./files:/usr/src/files
+        ports:
+            - 8501:8501
+        restart: always
+        command: streamlit run main.py --server.port 8501
