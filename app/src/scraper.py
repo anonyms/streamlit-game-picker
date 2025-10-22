@@ -2,6 +2,40 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
+def get_element_by_class_name(url, class_name):
+
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+        
+        # Give the page a moment to ensure content is loaded (if it were dynamic)
+        time.sleep(1)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # --- Placeholder for Scraping Logic ---
+        # NOTE: The selectors below are examples and WILL need to be updated.
+        # SofaScore and similar sites often use dynamic class names that change.
+        # You must inspect the live website to find the correct, stable selectors.
+
+        # 1. Scrape League Name
+        league_name_element = soup.find('h2', {'class': class_name}) # This is an example selector
+        league_name = league_name_element.text.strip() if league_name_element else "League Name Not Found"
+
+        return league_name
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching the URL: {e}")
+        return None
+    except Exception as e:
+        print(f"An error occurred during scraping: {e}")
+        return None
+
 def scrape_league_data(url):
     """
     Scrapes a single SofaScore league page for standings, form, wins, and next games.

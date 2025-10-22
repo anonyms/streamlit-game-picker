@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from src.scraper import scrape_league_data
+from src.scraper import get_element_by_class_name
 
 st.set_page_config(page_title="Scraper Test Page", layout="wide")
 
@@ -30,7 +31,7 @@ if st.button("🔬 Test Scraper", type="primary"):
                 if scraped_data:
                     st.success("Scraping finished successfully!")
                     
-                    st.metric("League Name Found", scraped_data.get('Text.equVkn', 'Not Found'))
+                    st.metric("League Name Found", get_element_by_class_name(test_url,"Text equVkn"))
 
                     st.subheader("Raw Scraped Data")
                     st.json(scraped_data)
