@@ -14,7 +14,7 @@ the CSS selectors in `scraper.py` without running the full process.
 st.subheader("Test a Single URL")
 test_url = st.text_input(
     "Enter a SofaScore League URL to test:",
-    placeholder="https://www.sofascore.com/tournament/football/england/premier-league/17"
+    placeholder="https://www.sofascore.com/tournament/football/england/premier-league/17#id:76986"
 )
 
 if st.button("🔬 Test Scraper", type="primary"):
@@ -22,6 +22,7 @@ if st.button("🔬 Test Scraper", type="primary"):
         st.warning("Please enter a URL to test.")
     else:
         st.info(f"Attempting to scrape: {test_url}")
+        ##st.write("Testing?")
         with st.spinner("Scraping in progress..."):
             try:
                 scraped_data = scrape_league_data(test_url)
@@ -29,7 +30,7 @@ if st.button("🔬 Test Scraper", type="primary"):
                 if scraped_data:
                     st.success("Scraping finished successfully!")
                     
-                    st.metric("League Name Found", scraped_data.get('league_name', 'Not Found'))
+                    st.metric("League Name Found", scraped_data.get('Text.equVkn', 'Not Found'))
 
                     st.subheader("Raw Scraped Data")
                     st.json(scraped_data)
