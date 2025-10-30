@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import base64 # Import for screenshot
 
 def get_page_source_with_selenium(url):
     """
@@ -27,37 +28,88 @@ def get_page_source_with_selenium(url):
     except Exception as e:
         error_msg = f"Error initializing Selenium WebDriver: {e}. Ensure chromedriver is in PATH."
         print(error_msg)
-        return None, error_msg
+        return None, {"error_message": error_msg} # Return as dict
 
     page_source = None
     try:
         print(f"Getting URL: {url}")
         driver.get(url)
         
+        # --- NEW: ATTEMPT TO CLICK COOKIE CONSENT BUTTON ---
+        try:
+            # Wait a max of 5 seconds for a common cookie button to appear
+            cookie_button_xpath = "//button[contains(text(), 'I agree') or contains(text(), 'Accept all') or contains(text(), 'Accept') or contains(text(), 'Consent')]"
+            print(f"Waiting for cookie button: {cookie_button_xpath}")
+            
+            WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, cookie_button_xpath))
+            ).click()
+            print("Cookie consent button found and clicked.")
+            
+            # Give the page a moment to react after closing the modal
+            time.sleep(1)
+            
+        except TimeoutException:
+            print("Cookie consent button not found or not needed.")
+            pass # It's fine, just continue
+        except Exception as e:
+            print(f"An error occurred while trying to click the cookie button: {e}")
+            pass # Continue anyway
+        # --- END OF COOKIE LOGIC ---
+
         wait_selector = 'div[class*="StandingsTable-module__container"]'
         print(f"Waiting for selector: {wait_selector}")
         
-        WebDriverWait(driver, 15).until(
+        # --- CHANGE: Increased wait time ---
+        WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, wait_selector))
         )
         print("Selector found. Page is loaded.")
         
-        time.sleep(1) 
+        # --- CHANGE: Increased sleep time just in case ---
+        time.sleep(2) 
         page_source = driver.page_source
         
     except TimeoutException:
-        error_msg = "Timeout: The page took too long to load or the wait selector 'div[class*=\"StandingsTable-module__container\"]' was not found. The SofaScore layout may have changed."
+        # --- NEW DEBUGGING FEATURES ---
+        print("TimeoutException: Taking screenshot and saving page source.")
+        
+        # 1. Get screenshot as base64
+        try:
+            screenshot_base64 = driver.get_screenshot_as_base64()
+        except Exception as e:
+            screenshot_base64 = f"Screenshot failed: {e}"
+            
+        # 2. Get current page source
+        try:
+            debug_page_source = driver.page_source
+        except Exception as e:
+            debug_page_source = f"Page source capture failed: {e}"
+
+        error_msg = ("Timeout: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
+                     "This likely means the SofaScore layout changed OR the cookie consent logic failed. "
+                     "A debug screenshot and the page source (HTML) are included in the error.")
+        
         print(error_msg)
-        return None, error_msg
+        
+        # Return a dictionary with debug info
+        debug_info = {
+            "error_message": error_msg,
+            "debug_screenshot_base64": screenshot_base64,
+            "debug_page_source": debug_page_source
+        }
+        return None, debug_info # Return the debug info dictionary as the "error"
+    
     except Exception as e:
         error_msg = f"Error loading page with Selenium: {e}"
         print(error_msg)
-        return None, error_msg
+        return None, {"error_message": error_msg} # Return as dict for consistency
     finally:
         if driver:
             driver.quit()
         
-    return page_source, None
+    # --- CHANGE: Return as dict for consistency ---
+    return page_source, {"error_message": None}
 
 
 def scrape_league_data(url):
@@ -67,10 +119,12 @@ def scrape_league_data(url):
     """
     
     # 1. Get the page source using Selenium
-    html_content, error = get_page_source_with_selenium(url)
+    html_content, error_info = get_page_source_with_selenium(url)
     
-    if error:
-        return {"error": error}
+    # --- CHANGE: Handle new error dictionary ---
+    if error_info and error_info.get("error_message"):
+        # Pass the whole debug dictionary forward as the error
+        return {"error": error_info.get("error_message"), "debug_info": error_info}
 
     if not html_content:
         return {"error": "Failed to retrieve page source (html_content is empty)."}
