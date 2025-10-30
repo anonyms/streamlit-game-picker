@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from src.scraper import get_page_source_with_selenium
+from src.scraper import scrape_league_data
 
 st.set_page_config(page_title="Scraper Test Page", layout="wide")
 
@@ -14,7 +14,7 @@ the CSS selectors in `scraper.py` without running the full process.
 st.subheader("Test a Single URL")
 test_url = st.text_input(
     "Enter a SofaScore League URL to test:",
-    placeholder="https://www.sofascore.com/tournament/football/england/premier-league/17#id:76986"
+    placeholder="https://www.sofascore.com/tournament/football/england/premier-league/17"
 )
 
 if st.button("🔬 Test Scraper", type="primary"):
@@ -24,7 +24,7 @@ if st.button("🔬 Test Scraper", type="primary"):
         st.info(f"Attempting to scrape: {test_url}")
         with st.spinner("Scraping in progress..."):
             try:
-                scraped_data = get_page_source_with_selenium(test_url)
+                scraped_data = scrape_league_data(test_url)
 
                 if scraped_data:
                     st.success("Scraping finished successfully!")
