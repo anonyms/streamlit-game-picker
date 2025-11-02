@@ -66,6 +66,32 @@ def get_page_source_with_selenium(url):
             pass # Continue anyway
         # --- END OF COOKIE LOGIC ---
 
+        # --- NEW: ATTEMPT TO CLICK LANGUAGE/PROMO CLOSE BUTTON (BY CLASS/ARIA-LABEL) ---
+        try:
+            # Wait a max of 3 seconds for a close button
+            # This selector targets a button with class containing 'close' or aria-label 'Close'
+            close_button_selector = 'button[class*="close"], button[aria-label*="Close"], button[class*="modal__close"]' 
+            print(f"Waiting for a modal close button: {close_button_selector}")
+            
+            close_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, close_button_selector))
+            )
+            
+            # Use JavaScript click, which is often more reliable
+            driver.execute_script("arguments[0].click();", close_button)
+            print("Modal close button found and clicked via JavaScript.")
+            
+            # Give the page a moment to react
+            time.sleep(1.0)
+            
+        except TimeoutException:
+            print("Modal close button not found or not needed.")
+            pass # It's fine, just continue
+        except Exception as e:
+            print(f"An error occurred while trying to click the modal close button: {e}")
+            pass # Continue anyway
+        # --- END OF MODAL CLOSE LOGIC ---
+
         wait_selector = 'div[class*="StandingsTable-module__container"]'
         print(f"Waiting for selector: {wait_selector}")
         
@@ -95,7 +121,7 @@ def get_page_source_with_selenium(url):
         except Exception as e:
             debug_page_source = f"Page source capture failed: {e}"
 
-        error_msg = ("Timeout 2: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
+        error_msg = ("Timeout 3: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
                      "This likely means the SofaScore layout changed OR the cookie consent logic failed. "
                      "A debug screenshot and the page source (HTML) are included in the error.")
         
