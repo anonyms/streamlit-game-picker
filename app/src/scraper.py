@@ -19,6 +19,11 @@ def get_page_source_with_selenium(url):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+
+    # --- NEW: FAKE DESKTOP RESOLUTION AND USER AGENT ---
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    # --- END OF NEW OPTIONS ---
     
     driver = None
     try:
@@ -37,17 +42,21 @@ def get_page_source_with_selenium(url):
         
         # --- NEW: ATTEMPT TO CLICK COOKIE CONSENT BUTTON ---
         try:
-            # Wait a max of 5 seconds for a common cookie button to appear
-            cookie_button_xpath = "//button[contains(text(), 'I agree') or contains(text(), 'Accept all') or contains(text(), 'Accept') or contains(text(), 'Consent')]"
-            print(f"Waiting for cookie button: {cookie_button_xpath}")
+            # Wait a max of 7 seconds for a common cookie button to appear
+            # This selector targets a button with a class like 'fc-cta-consent'
+            cookie_selector_css = "button.fc-cta-consent" 
+            print(f"Waiting for cookie button: {cookie_selector_css}")
             
-            WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.XPATH, cookie_button_xpath))
-            ).click()
-            print("Cookie consent button found and clicked.")
+            cookie_button = WebDriverWait(driver, 7).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, cookie_selector_css))
+            )
+            
+            # Use JavaScript click, which is often more reliable
+            driver.execute_script("arguments[0].click();", cookie_button)
+            print("Cookie consent button found and clicked via JavaScript.")
             
             # Give the page a moment to react after closing the modal
-            time.sleep(1)
+            time.sleep(1.5)
             
         except TimeoutException:
             print("Cookie consent button not found or not needed.")
@@ -86,7 +95,7 @@ def get_page_source_with_selenium(url):
         except Exception as e:
             debug_page_source = f"Page source capture failed: {e}"
 
-        error_msg = ("Timeout: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
+        error_msg = ("Timeout 2: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
                      "This likely means the SofaScore layout changed OR the cookie consent logic failed. "
                      "A debug screenshot and the page source (HTML) are included in the error.")
         
