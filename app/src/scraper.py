@@ -121,7 +121,7 @@ def get_page_source_with_selenium(url):
         except Exception as e:
             debug_page_source = f"Page source capture failed: {e}"
 
-        error_msg = ("Timeout 3: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
+        error_msg = ("Timeout 4: The page took too long (30s) or the selector 'div[class*=\"StandSofaScore.comStandingsTable-module__container\"]' was not found. "
                      "This likely means the SofaScore layout changed OR the cookie consent logic failed. "
                      "A debug screenshot and the page source (HTML) are included in the error.")
         
