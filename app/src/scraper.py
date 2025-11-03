@@ -24,6 +24,13 @@ def get_page_source_with_selenium(url):
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     # --- END OF NEW OPTIONS ---
+
+    # --- NEW: SET BROWSER LANGUAGE / LOCALE ---
+    # This tells the browser to request US English, which should prevent
+    # the "confirm language" pop-up.
+    chrome_options.add_argument("--lang=en-US")
+    chrome_options.add_argument("accept-language=en-US,en;q=0.9")
+    # --- END OF NEW LANGUAGE OPTIONS ---
     
     driver = None
     try:
