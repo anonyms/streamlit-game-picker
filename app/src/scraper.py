@@ -72,6 +72,24 @@ def get_page_source_with_selenium(url):
             print(f"An error occurred while trying to click the cookie button: {e}")
             pass # Continue anyway
         # --- END OF COOKIE LOGIC ---
+
+        # --- NEW: ATTEMPT TO CLICK LANGUAGE/PROMO CLOSE BUTTON (BY CLASS/ARIA-LABEL) ---
+        try:
+            # Wait a max of 3 seconds for a close button
+            # This selector targets a button with class containing 'close' or aria-label 'Close'
+            close_button_selector = 'button[class*="close"], button[aria-label*="Close"], button[class*="modal__close"]' 
+            print(f"Waiting for a modal close button: {close_button_selector}")
+            
+            close_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, close_button_selector))
+            )
+            
+            # Use JavaScript click, which is often more reliable
+            driver.execute_script("arguments[0].click();", close_button)
+            print("Modal close button found and clicked via JavaScript.")
+            
+            # Give the page a moment to react
+            time.sleep(1.0)
             
         except TimeoutException:
             print("Modal close button not found or not needed.")
